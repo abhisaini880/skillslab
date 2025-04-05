@@ -32,7 +32,7 @@ def test_register_user(client: TestClient):
         "email": "newuser@example.com",
         "username": "newuser",
         "password": "newpassword",
-        "full_name": "New User"
+        "full_name": "New User",
     }
     response = client.post("/api/v1/auth/register", json=user_data)
     assert response.status_code == 200
@@ -49,7 +49,7 @@ def test_register_existing_user_fails(client: TestClient, test_user):
         "email": test_user["email"],
         "username": "differentusername",
         "password": "password123",
-        "full_name": "Different User"
+        "full_name": "Different User",
     }
     response = client.post("/api/v1/auth/register", json=user_data)
     assert response.status_code == 400
@@ -62,7 +62,7 @@ def test_register_existing_username_fails(client: TestClient, test_user):
         "email": "different@example.com",
         "username": test_user["username"],
         "password": "password123",
-        "full_name": "Different User"
+        "full_name": "Different User",
     }
     response = client.post("/api/v1/auth/register", json=user_data)
     assert response.status_code == 400

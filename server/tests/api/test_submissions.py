@@ -17,8 +17,8 @@ def test_problem(db: Session):
         problem_metadata={
             "example_input": "5",
             "example_output": "25",
-            "constraints": "1 <= n <= 1000"
-        }
+            "constraints": "1 <= n <= 1000",
+        },
     )
     db.add(problem)
     db.commit()
@@ -31,14 +31,17 @@ def test_submission(db: Session, test_problem, test_user):
     """Create a test submission linked to the test user and problem."""
     # First get the user ID from the database
     from app.models.user import User
-    db_user = db.query(User).filter(User.username == test_user["username"]).first()
-    
+
+    db_user = (
+        db.query(User).filter(User.username == test_user["username"]).first()
+    )
+
     submission = Submission(
         user_id=db_user.id,
         problem_id=test_problem.id,
         content="def solve(n):\n    return n*n",
         language="python",
-        status=SubmissionStatus.PENDING
+        status=SubmissionStatus.PENDING,
     )
     db.add(submission)
     db.commit()
@@ -46,7 +49,9 @@ def test_submission(db: Session, test_problem, test_user):
     return submission
 
 
-def test_list_user_submissions(client: TestClient, user_token_headers, test_submission):
+def test_list_user_submissions(
+    client: TestClient, user_token_headers, test_submission
+):
     """Test listing a user's submissions."""
     response = client.get("/api/v1/submissions/", headers=user_token_headers)
     assert response.status_code == 200
@@ -55,29 +60,35 @@ def test_list_user_submissions(client: TestClient, user_token_headers, test_subm
     assert "total" in data
     assert data["total"] >= 1
     assert len(data["items"]) >= 1
-    
+
     # Check that our test submission is in the list
     submission_ids = [s["id"] for s in data["items"]]
     assert test_submission.id in submission_ids
 
 
-def test_filter_submissions_by_problem(client: TestClient, user_token_headers, test_submission):
+def test_filter_submissions_by_problem(
+    client: TestClient, user_token_headers, test_submission
+):
     """Test filtering submissions by problem."""
     response = client.get(
         f"/api/v1/submissions/?problem_id={test_submission.problem_id}",
-        headers=user_token_headers
+        headers=user_token_headers,
     )
     assert response.status_code == 200
     data = response.json()
     assert data["total"] >= 1
-    assert all(s["problem_id"] == test_submission.problem_id for s in data["items"])
+    assert all(
+        s["problem_id"] == test_submission.problem_id for s in data["items"]
+    )
 
 
-def test_get_submission_by_id(client: TestClient, user_token_headers, test_submission):
+def test_get_submission_by_id(
+    client: TestClient, user_token_headers, test_submission
+):
     """Test getting a specific submission by ID."""
     response = client.get(
         f"/api/v1/submissions/{test_submission.id}",
-        headers=user_token_headers
+        headers=user_token_headers,
     )
     assert response.status_code == 200
     submission = response.json()
@@ -88,28 +99,31 @@ def test_get_submission_by_id(client: TestClient, user_token_headers, test_submi
     assert submission["user_id"] == test_submission.user_id
 
 
-def test_cannot_access_other_users_submission(client: TestClient, user_token_headers):
+def test_cannot_access_other_users_submission(
+    client: TestClient, user_token_headers
+):
     """Test that a user cannot access another user's submission."""
     # Use a non-existent submission ID that would belong to another user
     response = client.get(
-        "/api/v1/submissions/9999",
-        headers=user_token_headers
+        "/api/v1/submissions/9999", headers=user_token_headers
     )
     assert response.status_code == 404
 
 
-def test_create_submission(client: TestClient, user_token_headers, test_problem):
+def test_create_submission(
+    client: TestClient, user_token_headers, test_problem
+):
     """Test creating a new submission."""
     submission_data = {
         "problem_id": test_problem.id,
         "content": "function solution(input) { return input * input; }",
-        "language": "javascript"
+        "language": "javascript",
     }
-    
+
     response = client.post(
         "/api/v1/submissions/",
         headers=user_token_headers,
-        json=submission_data
+        json=submission_data,
     )
     assert response.status_code == 200
     submission = response.json()
@@ -119,23 +133,23 @@ def test_create_submission(client: TestClient, user_token_headers, test_problem)
     assert submission["status"] == "pending"  # Should start as pending
 
 
-def test_admin_can_update_submission(client: TestClient, admin_token_headers, test_submission):
+def test_admin_can_update_submission(
+    client: TestClient, admin_token_headers, test_submission
+):
     """Test that an admin can update a submission status."""
     update_data = {
         "status": "accepted",
         "score": 95.5,
         "results": {
-            "testCases": [
-                {"name": "Test 1", "passed": True, "output": "25"}
-            ],
-            "summary": {"passed": 1, "total": 1}
-        }
+            "testCases": [{"name": "Test 1", "passed": True, "output": "25"}],
+            "summary": {"passed": 1, "total": 1},
+        },
     }
-    
+
     response = client.put(
         f"/api/v1/submissions/{test_submission.id}",
         headers=admin_token_headers,
-        json=update_data
+        json=update_data,
     )
     assert response.status_code == 200
     updated = response.json()
