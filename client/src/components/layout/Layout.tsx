@@ -1,20 +1,45 @@
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import { Box, CssBaseline } from '@mui/material';
-import Header from './Header';
-import Sidebar from './Sidebar';
+import { Box, CssBaseline, useMediaQuery, useTheme } from '@mui/material';
+import SideNavigation from './SideNavigation';
 
 const Layout = () => {
-    const [sidebarOpen, setSidebarOpen] = useState(false);
-    const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+    // Width of the permanent sidebar
+    const sidebarWidth = 80;
+
+    const handleToggleMobileMenu = () => {
+        setMobileMenuOpen(!mobileMenuOpen);
+    };
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <Box sx={{ display: 'flex', minHeight: '100vh' }}>
             <CssBaseline />
-            <Header toggleSidebar={toggleSidebar} />
-            <Box sx={{ display: 'flex', flex: 1 }}>
-                <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-                <Box component="main" sx={{ flexGrow: 1, p: { xs: 2, md: 3 }, width: '100%' }}>
+
+            {/* Side Navigation - permanent on desktop, drawer on mobile */}
+            <SideNavigation
+                width={sidebarWidth}
+                mobileOpen={mobileMenuOpen}
+                handleToggleMobile={handleToggleMobileMenu}
+            />
+
+            {/* Main Content */}
+            <Box
+                component="main"
+                sx={{
+                    flexGrow: 1,
+                    width: { sm: `calc(100% - ${sidebarWidth}px)` },
+                    ml: { sm: `${sidebarWidth}px` },
+                }}
+            >
+                <Box sx={{
+                    p: { xs: 2, md: 4 },
+                    pt: { xs: 4, md: 5 },
+                    minHeight: '100vh'
+                }}>
                     <Outlet />
                 </Box>
             </Box>

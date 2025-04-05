@@ -7,7 +7,7 @@ export interface IUser {
     email: string;
     full_name?: string;
     is_active: boolean;
-    is_superuser: boolean;
+    is_admin: boolean;
     created_at: string;
 }
 

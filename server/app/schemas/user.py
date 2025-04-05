@@ -9,6 +9,7 @@ class UserBase(BaseModel):
     username: Optional[str] = None
     is_active: Optional[bool] = True
     full_name: Optional[str] = None
+    is_admin: Optional[bool] = False
 
 
 # Properties to receive via API on creation

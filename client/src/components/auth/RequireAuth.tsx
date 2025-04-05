@@ -6,8 +6,12 @@ import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { getCurrentUser } from '@/store/slices/authSlice';
 import { CircularProgress, Box } from '@mui/material';
 
-const RequireAuth = () => {
-    const { isAuthenticated, isLoading, token } = useSelector((state: RootState) => state.auth);
+interface RequireAuthProps {
+    requireAdmin?: boolean;
+}
+
+const RequireAuth = ({ requireAdmin = false }: RequireAuthProps) => {
+    const { isAuthenticated, isLoading, token, user } = useSelector((state: RootState) => state.auth);
     const dispatch = useAppDispatch();
     const location = useLocation();
 
@@ -27,6 +31,11 @@ const RequireAuth = () => {
 
     if (!isAuthenticated) {
         return <Navigate to="/login" state={{ from: location }} replace />;
+    }
+
+    // Check for admin permission if the route requires it
+    if (requireAdmin && (!user || !user.is_admin)) {
+        return <Navigate to="/" state={{ from: location }} replace />;
     }
 
     return <Outlet />;

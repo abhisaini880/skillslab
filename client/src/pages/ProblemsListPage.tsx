@@ -98,17 +98,19 @@ const ProblemsListPage = () => {
     };
 
     // Filter problems based on search, type and difficulty
-    const filteredProblems = problems.filter((problem) => {
-        const matchesSearch = search
-            ? problem.title.toLowerCase().includes(search.toLowerCase()) ||
-            problem.description.toLowerCase().includes(search.toLowerCase())
-            : true;
+    const filteredProblems = Array.isArray(problems)
+        ? problems.filter((problem) => {
+            const matchesSearch = search
+                ? problem.title.toLowerCase().includes(search.toLowerCase()) ||
+                problem.description.toLowerCase().includes(search.toLowerCase())
+                : true;
 
-        const matchesType = typeFilter ? problem.type === typeFilter : true;
-        const matchesDifficulty = difficultyFilter ? problem.difficulty === difficultyFilter : true;
+            const matchesType = typeFilter ? problem.type === typeFilter : true;
+            const matchesDifficulty = difficultyFilter ? problem.difficulty === difficultyFilter : true;
 
-        return matchesSearch && matchesType && matchesDifficulty;
-    });
+            return matchesSearch && matchesType && matchesDifficulty;
+        })
+        : [];
 
     // Pagination
     const indexOfLastProblem = page * problemsPerPage;
@@ -120,7 +122,7 @@ const ProblemsListPage = () => {
         navigate(`/problems/${problemId}`);
     };
 
-    if (isLoading && problems.length === 0) {
+    if (isLoading && (!Array.isArray(problems) || problems.length === 0)) {
         return (
             <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
                 <CircularProgress />
