@@ -37,7 +37,8 @@ class AuthService {
         formData.append('username', credentials.username);
         formData.append('password', credentials.password);
 
-        const response = await api.post<TokenResponse>('/auth/login/access-token', formData, {
+        // Fixed endpoint path to match backend
+        const response = await api.post<TokenResponse>('/auth/login', formData, {
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
