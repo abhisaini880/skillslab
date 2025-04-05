@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "DesignSkills"
+    PROJECT_NAME: str = "SkillsLab"
     VERSION: str = "0.1.0"
     DESCRIPTION: str = (
         "A platform for practicing various engineering skills including DSA, LLD, HLD, SQL, and DevOps"
