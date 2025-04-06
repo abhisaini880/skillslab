@@ -55,11 +55,11 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
     const location = useLocation();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-    
+
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [userStreak, setUserStreak] = useState(7); // Mock streak data
-    
+
     useEffect(() => {
         // If the user is authenticated but we don't have user data, fetch it
         if (isAuthenticated && !user) {
@@ -70,22 +70,22 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
     const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);
     };
-    
+
     const handleCloseUserMenu = () => {
         setAnchorEl(null);
     };
-    
+
     const handleLogout = () => {
         dispatch(logout());
         handleCloseUserMenu();
         navigate('/');
     };
-    
+
     const handleProfile = () => {
         navigate('/profile');
         handleCloseUserMenu();
     };
-    
+
     const handleAdmin = () => {
         navigate('/admin');
         handleCloseUserMenu();
@@ -94,10 +94,10 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
     const toggleMobileMenu = () => {
         setMobileMenuOpen(!mobileMenuOpen);
     };
-    
+
     // Check if user is admin
     const isAdmin = user?.is_admin || user?.role === 'admin';
-    
+
     // Navigation items for header and mobile drawer
     const navItems = [
         { name: 'Home', path: '/', icon: <HomeIcon fontSize="small" /> },
@@ -142,8 +142,8 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
                         aria-label="open drawer"
                         edge="start"
                         onClick={toggleMobileMenu}
-                        sx={{ 
-                            mr: 2, 
+                        sx={{
+                            mr: 2,
                             display: { sm: 'none' },
                             border: '1px solid rgba(255, 255, 255, 0.1)',
                             borderRadius: 1,
@@ -159,9 +159,9 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
                             if (item.adminRequired && (!isAuthenticated || !isAdmin)) return null;
                             // Skip auth required items if not authenticated
                             if (item.authRequired && !isAuthenticated) return null;
-                            
+
                             const active = isActive(item.path);
-                            
+
                             return (
                                 <Button
                                     key={item.name}
@@ -198,10 +198,10 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
 
                     {/* Search field */}
                     <Box sx={{ position: 'relative', display: { xs: 'none', md: 'block' }, mr: 2, flexGrow: { md: 0.5, lg: 0.3 } }}>
-                        <Paper 
+                        <Paper
                             component="form"
                             elevation={0}
-                            sx={{ 
+                            sx={{
                                 p: '2px 8px',
                                 display: 'flex',
                                 alignItems: 'center',
@@ -223,8 +223,8 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
                     {isAuthenticated && (
                         <Chip
                             icon={
-                                <LocalFireDepartmentIcon 
-                                    sx={{ 
+                                <LocalFireDepartmentIcon
+                                    sx={{
                                         color: theme.palette.warning.main,
                                         animation: userStreak > 5 ? 'pulse 1.5s infinite' : 'none',
                                         '@keyframes pulse': {
@@ -238,11 +238,11 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
                                                 filter: 'brightness(100%)',
                                             },
                                         }
-                                    }} 
+                                    }}
                                 />
                             }
                             label={userStreak}
-                            sx={{ 
+                            sx={{
                                 bgcolor: alpha(theme.palette.warning.main, 0.15),
                                 border: `1px solid ${alpha(theme.palette.warning.main, 0.3)}`,
                                 color: theme.palette.warning.main,
@@ -261,9 +261,9 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
 
                     {/* Notifications */}
                     {isAuthenticated && (
-                        <IconButton 
+                        <IconButton
                             color="inherit"
-                            sx={{ 
+                            sx={{
                                 mr: 2,
                                 border: '1px solid rgba(255, 255, 255, 0.1)',
                                 borderRadius: 1,
@@ -384,21 +384,21 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
                                 </Box>
 
                                 <Divider />
-                                
+
                                 <MenuItem onClick={handleProfile} sx={{ py: 1.5, borderRadius: 0 }}>
                                     <ListItemIcon>
                                         <AccountCircleIcon fontSize="small" color="primary" />
                                     </ListItemIcon>
                                     <Typography variant="body2">My Profile</Typography>
                                 </MenuItem>
-                                
+
                                 <MenuItem sx={{ py: 1.5, borderRadius: 0 }}>
                                     <ListItemIcon>
                                         <SettingsIcon fontSize="small" color="primary" />
                                     </ListItemIcon>
                                     <Typography variant="body2">Settings</Typography>
                                 </MenuItem>
-                                
+
                                 {isAdmin && (
                                     <MenuItem onClick={handleAdmin} sx={{ py: 1.5, borderRadius: 0 }}>
                                         <ListItemIcon>
@@ -407,9 +407,9 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
                                         <Typography variant="body2">Admin Panel</Typography>
                                     </MenuItem>
                                 )}
-                                
+
                                 <Divider />
-                                
+
                                 <MenuItem onClick={handleLogout} sx={{ py: 1.5, borderRadius: 0 }}>
                                     <ListItemIcon>
                                         <LogoutIcon fontSize="small" color="error" />
@@ -432,10 +432,10 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
                             >
                                 Login
                             </Button>
-                            <Button 
-                                component={RouterLink} 
-                                to="/register" 
-                                variant="contained" 
+                            <Button
+                                component={RouterLink}
+                                to="/register"
+                                variant="contained"
                                 color="primary"
                                 sx={{ borderRadius: 1 }}
                             >
@@ -452,8 +452,8 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
                 onClose={toggleMobileMenu}
                 sx={{
                     display: { sm: 'none' },
-                    '& .MuiDrawer-paper': { 
-                        boxSizing: 'border-box', 
+                    '& .MuiDrawer-paper': {
+                        boxSizing: 'border-box',
                         width: 280,
                         backgroundColor: theme.palette.background.paper,
                         borderRight: '1px solid rgba(255, 255, 255, 0.1)',
@@ -503,7 +503,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
                                     icon={<LocalFireDepartmentIcon />}
                                     label={`${userStreak} day streak`}
                                     size="small"
-                                    sx={{ 
+                                    sx={{
                                         bgcolor: alpha(theme.palette.warning.main, 0.15),
                                         border: `1px solid ${alpha(theme.palette.warning.main, 0.3)}`,
                                         color: theme.palette.warning.main,
@@ -513,7 +513,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
                                         },
                                     }}
                                 />
-                                
+
                                 {isAdmin && (
                                     <Chip
                                         label="Admin"
@@ -531,10 +531,10 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
 
                 <Box sx={{ p: 2 }}>
                     {/* Search in mobile menu */}
-                    <Paper 
+                    <Paper
                         component="form"
                         elevation={0}
-                        sx={{ 
+                        sx={{
                             p: '2px 8px',
                             mb: 2,
                             display: 'flex',
@@ -558,9 +558,9 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
                             if (item.adminRequired && (!isAuthenticated || !isAdmin)) return null;
                             // Skip auth required items if not authenticated
                             if (item.authRequired && !isAuthenticated) return null;
-                            
+
                             const active = isActive(item.path);
-                            
+
                             return (
                                 <ListItemButton
                                     key={item.name}
@@ -582,7 +582,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
                                     <ListItemIcon sx={{ color: active ? 'primary.main' : 'text.secondary', minWidth: 40 }}>
                                         {item.icon}
                                     </ListItemIcon>
-                                    <ListItemText 
+                                    <ListItemText
                                         primary={item.name}
                                         primaryTypographyProps={{
                                             color: active ? 'primary.main' : 'text.primary',
@@ -599,10 +599,10 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
                     <>
                         <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.1)', my: 1 }} />
                         <Box sx={{ p: 2 }}>
-                            <Button 
-                                component={RouterLink} 
-                                to="/login" 
-                                variant="outlined" 
+                            <Button
+                                component={RouterLink}
+                                to="/login"
+                                variant="outlined"
                                 color="primary"
                                 fullWidth
                                 sx={{ mb: 1, borderRadius: 1 }}
@@ -610,10 +610,10 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
                             >
                                 Login
                             </Button>
-                            <Button 
-                                component={RouterLink} 
-                                to="/register" 
-                                variant="contained" 
+                            <Button
+                                component={RouterLink}
+                                to="/register"
+                                variant="contained"
                                 color="primary"
                                 fullWidth
                                 sx={{ borderRadius: 1 }}

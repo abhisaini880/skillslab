@@ -60,8 +60,8 @@ const AdminDashboardPage = () => {
     });
 
     // Mock data for dashboard
-    const recentProblems = Array.isArray(problems) 
-        ? problems.slice(0, 5) 
+    const recentProblems = Array.isArray(problems)
+        ? problems.slice(0, 5)
         : [];
 
     const recentUsers = [
@@ -298,17 +298,17 @@ const AdminDashboardPage = () => {
                                     <DashboardIcon />
                                 </Avatar>
                             </Box>
-                            <LinearProgress 
-                                variant="determinate" 
-                                value={stats.completionRate} 
-                                sx={{ 
-                                    height: 8, 
+                            <LinearProgress
+                                variant="determinate"
+                                value={stats.completionRate}
+                                sx={{
+                                    height: 8,
                                     borderRadius: 4,
                                     bgcolor: alpha(theme.palette.warning.main, 0.1),
                                     '& .MuiLinearProgress-bar': {
                                         bgcolor: theme.palette.warning.main,
                                     }
-                                }} 
+                                }}
                             />
                         </Paper>
                     </Grid>
@@ -318,10 +318,10 @@ const AdminDashboardPage = () => {
             <Grid container spacing={3}>
                 {/* Recent Problems */}
                 <Grid item xs={12} lg={6}>
-                    <Paper 
-                        elevation={0} 
+                    <Paper
+                        elevation={0}
                         sx={{
-                            p: 3, 
+                            p: 3,
                             borderRadius: 3,
                             height: '100%',
                             border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
@@ -411,8 +411,8 @@ const AdminDashboardPage = () => {
                                                         <Chip
                                                             label={problem.type}
                                                             size="small"
-                                                            sx={{ 
-                                                                mr: 1, 
+                                                            sx={{
+                                                                mr: 1,
                                                                 fontSize: '0.7rem',
                                                                 height: 20,
                                                                 fontWeight: 500
@@ -460,10 +460,10 @@ const AdminDashboardPage = () => {
 
                 {/* Recent Users */}
                 <Grid item xs={12} lg={6}>
-                    <Paper 
-                        elevation={0} 
+                    <Paper
+                        elevation={0}
                         sx={{
-                            p: 3, 
+                            p: 3,
                             borderRadius: 3,
                             height: '100%',
                             border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
@@ -531,8 +531,8 @@ const AdminDashboardPage = () => {
                         </Typography>
                         <Grid container spacing={3}>
                             <Grid item xs={12} sm={6} md={3}>
-                                <Card 
-                                    sx={{ 
+                                <Card
+                                    sx={{
                                         borderRadius: 3,
                                         border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
                                     }}
@@ -560,8 +560,8 @@ const AdminDashboardPage = () => {
                                 </Card>
                             </Grid>
                             <Grid item xs={12} sm={6} md={3}>
-                                <Card 
-                                    sx={{ 
+                                <Card
+                                    sx={{
                                         borderRadius: 3,
                                         border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
                                     }}
@@ -589,8 +589,8 @@ const AdminDashboardPage = () => {
                                 </Card>
                             </Grid>
                             <Grid item xs={12} sm={6} md={3}>
-                                <Card 
-                                    sx={{ 
+                                <Card
+                                    sx={{
                                         borderRadius: 3,
                                         border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
                                     }}
@@ -617,8 +617,8 @@ const AdminDashboardPage = () => {
                                 </Card>
                             </Grid>
                             <Grid item xs={12} sm={6} md={3}>
-                                <Card 
-                                    sx={{ 
+                                <Card
+                                    sx={{
                                         borderRadius: 3,
                                         border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
                                     }}

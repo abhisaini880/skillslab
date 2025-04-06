@@ -6,10 +6,10 @@ const Layout = () => {
     return (
         <Box sx={{ display: 'flex', minHeight: '100vh' }}>
             <CssBaseline />
-            
+
             {/* Header - Primary navigation */}
             <Header />
-            
+
             {/* Main Content */}
             <Box
                 component="main"

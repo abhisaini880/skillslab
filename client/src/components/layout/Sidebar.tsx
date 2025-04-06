@@ -82,14 +82,14 @@ const Sidebar = ({ open, onClose, variant, width }: SidebarProps) => {
                         <Box component="span" sx={{ color: theme.palette.text.primary }}>LAB</Box>
                     </Typography>
                 </Box>
-                
+
                 {variant === "temporary" && (
                     <IconButton onClick={onClose} size="small" sx={{ mr: -1 }}>
                         <MenuOpenIcon />
                     </IconButton>
                 )}
             </Box>
-            
+
             {isAuthenticated && (
                 <>
                     <Box sx={{ px: 3, pb: 2 }}>
@@ -142,7 +142,7 @@ const Sidebar = ({ open, onClose, variant, width }: SidebarProps) => {
                 >
                     Main Navigation
                 </Typography>
-                
+
                 <List sx={{ px: 2 }}>
                     <ListItem disablePadding>
                         <ListItemButton
@@ -178,7 +178,7 @@ const Sidebar = ({ open, onClose, variant, width }: SidebarProps) => {
                             />
                         </ListItemButton>
                     </ListItem>
-                    
+
                     <ListItem disablePadding>
                         <ListItemButton
                             component={NavLink}
@@ -213,7 +213,7 @@ const Sidebar = ({ open, onClose, variant, width }: SidebarProps) => {
                             />
                         </ListItemButton>
                     </ListItem>
-                    
+
                     <ListItem disablePadding>
                         <ListItemButton
                             component={NavLink}
@@ -248,7 +248,7 @@ const Sidebar = ({ open, onClose, variant, width }: SidebarProps) => {
                             />
                         </ListItemButton>
                     </ListItem>
-                    
+
                     <ListItem disablePadding>
                         <ListItemButton
                             component={NavLink}
@@ -284,7 +284,7 @@ const Sidebar = ({ open, onClose, variant, width }: SidebarProps) => {
                         </ListItemButton>
                     </ListItem>
                 </List>
-                
+
                 {isAuthenticated && (
                     <>
                         <Typography
@@ -337,7 +337,7 @@ const Sidebar = ({ open, onClose, variant, width }: SidebarProps) => {
                                     />
                                 </ListItemButton>
                             </ListItem>
-                            
+
                             <ListItem disablePadding>
                                 <ListItemButton
                                     component={NavLink}
@@ -375,7 +375,7 @@ const Sidebar = ({ open, onClose, variant, width }: SidebarProps) => {
                         </List>
                     </>
                 )}
-                
+
                 {isAdmin && isAuthenticated && (
                     <>
                         <Typography
@@ -428,7 +428,7 @@ const Sidebar = ({ open, onClose, variant, width }: SidebarProps) => {
                                     />
                                 </ListItemButton>
                             </ListItem>
-                            
+
                             <ListItem disablePadding>
                                 <ListItemButton
                                     component={NavLink}
