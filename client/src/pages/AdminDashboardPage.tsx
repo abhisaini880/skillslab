@@ -75,7 +75,10 @@ const AdminDashboardPage = () => {
         if (!Array.isArray(problems) || problems.length === 0) {
             dispatch(fetchProblems());
         }
+    }, [dispatch]); // Remove problems from dependency array
 
+    // Separate effect for stats updates
+    useEffect(() => {
         // Update stats when problems change
         if (Array.isArray(problems)) {
             setStats(prev => ({
@@ -83,7 +86,7 @@ const AdminDashboardPage = () => {
                 totalProblems: problems.length
             }));
         }
-    }, [dispatch, problems]);
+    }, [problems]);
 
     // Get problem type icon
     const getProblemTypeIcon = (type: string) => {

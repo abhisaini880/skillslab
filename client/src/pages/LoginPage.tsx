@@ -15,6 +15,7 @@ import {
     CircularProgress,
 } from '@mui/material';
 import { useForm, Controller, SubmitHandler } from 'react-hook-form';
+import { useEffect } from 'react';
 
 interface LoginForm {
     username: string;
@@ -28,6 +29,21 @@ const LoginPage = () => {
     const location = useLocation();
     const from = location.state?.from?.pathname || '/';
 
+    // Log initial component state and navigation intent
+    useEffect(() => {
+        console.log('LoginPage mounted, redirect path:', from);
+        console.log('Initial auth state:', { isLoading, error });
+
+        return () => {
+            console.log('LoginPage unmounting');
+        };
+    }, []);
+
+    // Log when auth state changes
+    useEffect(() => {
+        console.log('Auth state changed:', { isLoading, error });
+    }, [isLoading, error]);
+
     const {
         control,
         handleSubmit,
@@ -40,12 +56,29 @@ const LoginPage = () => {
     });
 
     const onSubmit: SubmitHandler<LoginForm> = async (data) => {
-        const resultAction = await dispatch(login(data));
-        if (login.fulfilled.match(resultAction)) {
-            await dispatch(clearError());
-            navigate(from, { replace: true });
+        console.log('Login attempt with username:', data.username);
+        try {
+            const resultAction = await dispatch(login(data));
+            console.log('Login action result:', resultAction);
+
+            if (login.fulfilled.match(resultAction)) {
+                console.log('Login successful, navigating to:', from);
+                await dispatch(clearError());
+                navigate(from, { replace: true });
+            } else if (login.rejected.match(resultAction)) {
+                console.error('Login failed:', resultAction.error);
+            }
+        } catch (err) {
+            console.error('Exception during login process:', err);
         }
     };
+
+    // Log form validation errors
+    useEffect(() => {
+        if (Object.keys(errors).length > 0) {
+            console.log('Form validation errors:', errors);
+        }
+    }, [errors]);
 
     return (
         <Container component="main" maxWidth="xs">
@@ -123,6 +156,7 @@ const LoginPage = () => {
                             variant="contained"
                             sx={{ mt: 3, mb: 2 }}
                             disabled={isLoading}
+                            onClick={() => console.log('Login button clicked')}
                         >
                             {isLoading ? <CircularProgress size={24} /> : 'Log In'}
                         </Button>

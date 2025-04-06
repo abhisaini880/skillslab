@@ -19,7 +19,8 @@ import {
     useTheme,
     Snackbar,
     Alert,
-    AlertColor
+    AlertColor,
+    CircularProgress
 } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
@@ -29,9 +30,24 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { Editor } from '@monaco-editor/react';
+import problemService, { TestCase as ApiTestCase, CreateProblemRequest } from '@/services/problemService';
+import { Problem as StoreProblem, ProblemType, DifficultyLevel } from '@/store/slices/problemsSlice';
 
 // Define problem difficulty types
-const difficulties = ['Easy', 'Medium', 'Hard', 'Expert'];
+const difficulties = [
+    DifficultyLevel.EASY,
+    DifficultyLevel.MEDIUM,
+    DifficultyLevel.HARD
+];
+
+// Define problem types
+const problemTypes = [
+    ProblemType.DSA,
+    ProblemType.LLD,
+    ProblemType.HLD,
+    ProblemType.SQL,
+    ProblemType.DEVOPS
+];
 
 // Define problem categories
 const categories = [
@@ -53,7 +69,8 @@ interface Problem {
     id?: string;
     title: string;
     description: string;
-    difficulty: string;
+    difficulty: DifficultyLevel;
+    type: ProblemType;
     tags: string[];
     category: string;
     constraints: string[];
@@ -71,6 +88,9 @@ const AdminProblemPage: React.FC = () => {
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
 
+    // Add loading state
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
     // Notification state
     const [notification, setNotification] = useState<{
         open: boolean;
@@ -86,7 +106,8 @@ const AdminProblemPage: React.FC = () => {
     const [problem, setProblem] = useState<Problem>({
         title: '',
         description: '',
-        difficulty: 'Medium',
+        difficulty: DifficultyLevel.MEDIUM,
+        type: ProblemType.DSA,
         tags: [],
         category: 'Arrays',
         constraints: [''],
@@ -110,47 +131,24 @@ const AdminProblemPage: React.FC = () => {
     // Fetch problem data if in edit mode
     useEffect(() => {
         if (isEditMode && id) {
-            // In a real app, you would fetch the problem data from the API
-            // For now, we'll just use placeholder data
             const fetchProblem = async () => {
                 try {
-                    // This would be replaced with actual API call:
-                    // const response = await problemService.getProblemById(id);
-                    // setProblem(response);
-
-                    // For demo purposes:
+                    const response = await problemService.getProblemById(id);
                     setProblem({
                         id,
-                        title: 'Two Sum',
-                        description: 'Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.',
-                        difficulty: 'Easy',
-                        tags: ['Array', 'Hash Table'],
-                        category: 'Arrays',
-                        constraints: [
-                            '2 <= nums.length <= 104',
-                            '-109 <= nums[i] <= 109',
-                            '-109 <= target <= 109',
-                            'Only one valid answer exists.'
-                        ],
-                        code_template: 'function twoSum(nums, target) {\n    // Your code here\n}',
-                        solution: 'function twoSum(nums, target) {\n    const map = {};\n    for (let i = 0; i < nums.length; i++) {\n        const complement = target - nums[i];\n        if (complement in map) {\n            return [map[complement], i];\n        }\n        map[nums[i]] = i;\n    }\n    return [];\n}',
-                        test_cases: [
-                            { input: '[2,7,11,15], 9', output: '[0,1]' },
-                            { input: '[3,2,4], 6', output: '[1,2]' }
-                        ],
-                        examples: [
-                            {
-                                input: 'nums = [2,7,11,15], target = 9',
-                                output: '[0,1]',
-                                explanation: 'Because nums[0] + nums[1] == 9, we return [0, 1].'
-                            },
-                            {
-                                input: 'nums = [3,2,4], target = 6',
-                                output: '[1,2]'
-                            }
-                        ],
-                        time_limit_ms: 1000,
-                        memory_limit_mb: 256
+                        title: response.title,
+                        description: response.description,
+                        difficulty: response.difficulty,
+                        type: response.type,
+                        tags: response.tags || [],
+                        category: response.category || 'Arrays',
+                        constraints: response.constraints || [''],
+                        code_template: response.code_template || '// Write your code template here\n\n',
+                        solution: response.solution || '// Write your solution here\n\n',
+                        test_cases: response.test_cases || [{ input: '', output: '' }],
+                        examples: response.examples || [{ input: '', output: '', explanation: '' }],
+                        time_limit_ms: response.time_limit_ms || 1000,
+                        memory_limit_mb: response.memory_limit_mb || 256
                     });
                 } catch (error) {
                     console.error('Error fetching problem:', error);
@@ -161,7 +159,6 @@ const AdminProblemPage: React.FC = () => {
                     });
                 }
             };
-
             fetchProblem();
         }
     }, [id, isEditMode]);
@@ -173,11 +170,19 @@ const AdminProblemPage: React.FC = () => {
             ...problem,
             [name]: value
         });
-
         // Clear any errors for this field
         if (errors[name]) {
             setErrors({ ...errors, [name]: '' });
         }
+    };
+
+    // Handle select change for dropdown fields
+    const handleSelectChange = (e: any) => {
+        const { name, value } = e.target;
+        setProblem({
+            ...problem,
+            [name]: value
+        });
     };
 
     // Handle code template changes
@@ -320,35 +325,47 @@ const AdminProblemPage: React.FC = () => {
     // Validate the form
     const validateForm = (): boolean => {
         const newErrors: Record<string, string> = {};
-
         if (!problem.title.trim()) {
             newErrors.title = 'Title is required';
         }
-
         if (!problem.description.trim()) {
             newErrors.description = 'Description is required';
         }
-
         if (problem.tags.length === 0) {
             newErrors.tags = 'At least one tag is required';
         }
-
         if (problem.examples.some(ex => !ex.input.trim() || !ex.output.trim())) {
             newErrors.examples = 'All examples must have input and output values';
         }
-
         if (problem.test_cases.some(tc => !tc.input.trim() || !tc.output.trim())) {
             newErrors.testCases = 'All test cases must have input and output values';
         }
-
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
+    };
+
+    // Convert the internal problem model to API request format
+    const prepareProblemData = (): CreateProblemRequest => {
+        return {
+            title: problem.title,
+            description: problem.description,
+            difficulty: problem.difficulty,
+            type: problem.type,
+            category: problem.category,
+            tags: problem.tags,
+            constraints: problem.constraints.filter(c => c.trim() !== ''), // Filter empty constraints
+            code_template: problem.code_template,
+            solution: problem.solution,
+            examples: problem.examples as ApiTestCase[],
+            test_cases: problem.test_cases as ApiTestCase[],
+            time_limit_ms: problem.time_limit_ms,
+            memory_limit_mb: problem.memory_limit_mb
+        };
     };
 
     // Handle form submission
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
         if (!validateForm()) {
             setNotification({
                 open: true,
@@ -358,36 +375,40 @@ const AdminProblemPage: React.FC = () => {
             return;
         }
 
+        setIsSubmitting(true);
+
         try {
-            // In a real app, you would send the data to the API
-            // For now, we'll just log it
-            console.log('Problem data to submit:', problem);
+            const problemData = prepareProblemData();
 
-            // This would be replaced with actual API call:
-            // if (isEditMode) {
-            //   await problemService.updateProblem(id, problem);
-            // } else {
-            //   await problemService.createProblem(problem);
-            // }
-
-            // Show success notification
-            setNotification({
-                open: true,
-                message: isEditMode ? 'Problem updated successfully!' : 'Problem created successfully!',
-                severity: 'success'
-            });
+            if (isEditMode && id) {
+                await problemService.updateProblem(id, problemData);
+                setNotification({
+                    open: true,
+                    message: 'Problem updated successfully!',
+                    severity: 'success'
+                });
+            } else {
+                await problemService.createProblem(problemData);
+                setNotification({
+                    open: true,
+                    message: 'Problem created successfully!',
+                    severity: 'success'
+                });
+            }
 
             // Navigate back to problems list after a short delay
             setTimeout(() => {
                 navigate('/admin/problems');
             }, 1500);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error saving problem:', error);
             setNotification({
                 open: true,
-                message: 'Failed to save problem',
+                message: error.response?.data?.detail || 'Failed to save problem',
                 severity: 'error'
             });
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -430,7 +451,6 @@ const AdminProblemPage: React.FC = () => {
                     }
                 </Typography>
             </Box>
-
             <form onSubmit={handleSubmit}>
                 <Paper
                     elevation={1}
@@ -445,7 +465,6 @@ const AdminProblemPage: React.FC = () => {
                     <Typography variant="h5" fontWeight={600} sx={{ mb: 3 }}>
                         Problem Details
                     </Typography>
-
                     <Grid container spacing={3}>
                         {/* Title */}
                         <Grid item xs={12} md={8}>
@@ -461,7 +480,6 @@ const AdminProblemPage: React.FC = () => {
                                 required
                             />
                         </Grid>
-
                         {/* Difficulty */}
                         <Grid item xs={12} md={4}>
                             <FormControl fullWidth>
@@ -470,7 +488,7 @@ const AdminProblemPage: React.FC = () => {
                                     labelId="difficulty-label"
                                     name="difficulty"
                                     value={problem.difficulty}
-                                    onChange={handleChange as any}
+                                    onChange={handleSelectChange}
                                     label="Difficulty"
                                 >
                                     {difficulties.map((diff) => (
@@ -482,15 +500,35 @@ const AdminProblemPage: React.FC = () => {
                             </FormControl>
                         </Grid>
 
+                        {/* Problem Type */}
+                        <Grid item xs={12} md={4}>
+                            <FormControl fullWidth>
+                                <InputLabel id="type-label">Problem Type</InputLabel>
+                                <Select
+                                    labelId="type-label"
+                                    name="type"
+                                    value={problem.type}
+                                    onChange={handleSelectChange}
+                                    label="Problem Type"
+                                >
+                                    {problemTypes.map((type) => (
+                                        <MenuItem key={type} value={type}>
+                                            {type}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </Grid>
+
                         {/* Category */}
-                        <Grid item xs={12} md={6}>
+                        <Grid item xs={12} md={4}>
                             <FormControl fullWidth>
                                 <InputLabel id="category-label">Category</InputLabel>
                                 <Select
                                     labelId="category-label"
                                     name="category"
                                     value={problem.category}
-                                    onChange={handleChange as any}
+                                    onChange={handleSelectChange}
                                     label="Category"
                                 >
                                     {categories.map((cat) => (
@@ -501,9 +539,8 @@ const AdminProblemPage: React.FC = () => {
                                 </Select>
                             </FormControl>
                         </Grid>
-
                         {/* Tags */}
-                        <Grid item xs={12} md={6}>
+                        <Grid item xs={12} md={4}>
                             <Box sx={{ mb: 1 }}>
                                 <FormControl fullWidth error={Boolean(errors.tags)}>
                                     <TextField
@@ -531,7 +568,6 @@ const AdminProblemPage: React.FC = () => {
                                     {errors.tags && <FormHelperText>{errors.tags}</FormHelperText>}
                                 </FormControl>
                             </Box>
-
                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                                 {problem.tags.map((tag, index) => (
                                     <Chip
@@ -544,7 +580,6 @@ const AdminProblemPage: React.FC = () => {
                                 ))}
                             </Box>
                         </Grid>
-
                         {/* Description */}
                         <Grid item xs={12}>
                             <TextField
@@ -561,7 +596,6 @@ const AdminProblemPage: React.FC = () => {
                                 required
                             />
                         </Grid>
-
                         {/* Time Limit */}
                         <Grid item xs={12} sm={6} md={3}>
                             <TextField
@@ -575,7 +609,6 @@ const AdminProblemPage: React.FC = () => {
                                 InputProps={{ inputProps: { min: 100, step: 100 } }}
                             />
                         </Grid>
-
                         {/* Memory Limit */}
                         <Grid item xs={12} sm={6} md={3}>
                             <TextField
@@ -591,7 +624,6 @@ const AdminProblemPage: React.FC = () => {
                         </Grid>
                     </Grid>
                 </Paper>
-
                 {/* Constraints */}
                 <Paper
                     elevation={1}
@@ -615,7 +647,6 @@ const AdminProblemPage: React.FC = () => {
                             Add Constraint
                         </Button>
                     </Box>
-
                     {problem.constraints.map((constraint, index) => (
                         <Box key={index} sx={{ display: 'flex', mb: 2 }}>
                             <TextField
@@ -636,7 +667,6 @@ const AdminProblemPage: React.FC = () => {
                         </Box>
                     ))}
                 </Paper>
-
                 {/* Examples */}
                 <Paper
                     elevation={1}
@@ -660,13 +690,11 @@ const AdminProblemPage: React.FC = () => {
                             Add Example
                         </Button>
                     </Box>
-
                     {Boolean(errors.examples) && (
                         <Alert severity="error" sx={{ mb: 2 }}>
                             {errors.examples}
                         </Alert>
                     )}
-
                     {problem.examples.map((example, index) => (
                         <Paper
                             key={index}
@@ -690,11 +718,9 @@ const AdminProblemPage: React.FC = () => {
                                     <DeleteIcon />
                                 </IconButton>
                             </Box>
-
                             <Typography variant="h6" sx={{ mb: 2 }}>
                                 Example {index + 1}
                             </Typography>
-
                             <Grid container spacing={3}>
                                 <Grid item xs={12} md={6}>
                                     <TextField
@@ -735,7 +761,6 @@ const AdminProblemPage: React.FC = () => {
                         </Paper>
                     ))}
                 </Paper>
-
                 {/* Test Cases */}
                 <Paper
                     elevation={1}
@@ -759,13 +784,11 @@ const AdminProblemPage: React.FC = () => {
                             Add Test Case
                         </Button>
                     </Box>
-
                     {Boolean(errors.testCases) && (
                         <Alert severity="error" sx={{ mb: 2 }}>
                             {errors.testCases}
                         </Alert>
                     )}
-
                     {problem.test_cases.map((testCase, index) => (
                         <Paper
                             key={index}
@@ -789,11 +812,9 @@ const AdminProblemPage: React.FC = () => {
                                     <DeleteIcon />
                                 </IconButton>
                             </Box>
-
                             <Typography variant="h6" sx={{ mb: 2 }}>
                                 Test Case {index + 1}
                             </Typography>
-
                             <Grid container spacing={3}>
                                 <Grid item xs={12} md={6}>
                                     <TextField
@@ -823,7 +844,6 @@ const AdminProblemPage: React.FC = () => {
                         </Paper>
                     ))}
                 </Paper>
-
                 {/* Code Template & Solution */}
                 <Paper
                     elevation={1}
@@ -838,7 +858,6 @@ const AdminProblemPage: React.FC = () => {
                     <Typography variant="h5" fontWeight={600} sx={{ mb: 3 }}>
                         Code Template & Solution
                     </Typography>
-
                     <Grid container spacing={3}>
                         <Grid item xs={12}>
                             <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 500 }}>
@@ -859,7 +878,6 @@ const AdminProblemPage: React.FC = () => {
                                 />
                             </Paper>
                         </Grid>
-
                         <Grid item xs={12}>
                             <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 500 }}>
                                 Solution Code
@@ -881,13 +899,13 @@ const AdminProblemPage: React.FC = () => {
                         </Grid>
                     </Grid>
                 </Paper>
-
                 {/* Submit buttons */}
                 <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 4 }}>
                     <Button
                         variant="outlined"
                         size="large"
                         onClick={() => navigate('/admin/problems')}
+                        disabled={isSubmitting}
                     >
                         Cancel
                     </Button>
@@ -895,16 +913,20 @@ const AdminProblemPage: React.FC = () => {
                         type="submit"
                         variant="contained"
                         size="large"
+                        disabled={isSubmitting}
                         sx={{
                             px: 4,
                             backgroundImage: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
                         }}
                     >
-                        {isEditMode ? 'Update Problem' : 'Create Problem'}
+                        {isSubmitting ? (
+                            <CircularProgress size={24} color="inherit" />
+                        ) : (
+                            isEditMode ? 'Update Problem' : 'Create Problem'
+                        )}
                     </Button>
                 </Box>
             </form>
-
             {/* Notification */}
             <Snackbar
                 open={notification.open}

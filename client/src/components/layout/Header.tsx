@@ -43,6 +43,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import LeaderboardIcon from '@mui/icons-material/Leaderboard';
 import SchoolIcon from '@mui/icons-material/School';
 import CloseIcon from '@mui/icons-material/Close';
+import ForumIcon from '@mui/icons-material/Forum';
 
 interface HeaderProps {
     toggleSidebar?: () => void;
@@ -104,7 +105,8 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
         { name: 'Problems', path: '/problems', icon: <CodeIcon fontSize="small" /> },
         { name: 'Leaderboard', path: '/leaderboard', icon: <LeaderboardIcon fontSize="small" /> },
         { name: 'Learning', path: '/learning', icon: <SchoolIcon fontSize="small" /> },
-        { name: 'Profile', path: '/profile', icon: <PersonIcon fontSize="small" />, authRequired: true },
+        { name: 'Discuss', path: '/discuss', icon: <ForumIcon fontSize="small" /> },
+        // Removed Profile from navbar as requested
         { name: 'Admin', path: '/admin', icon: <AdminPanelSettingsIcon fontSize="small" />, adminRequired: true }
     ];
 
@@ -553,6 +555,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
                     </Paper>
 
                     <List component="nav" sx={{ px: 0 }}>
+                        {/* Regular navigation items */}
                         {navItems.map((item) => {
                             // Skip admin items if user is not admin
                             if (item.adminRequired && (!isAuthenticated || !isAdmin)) return null;
@@ -579,7 +582,10 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
                                         }
                                     }}
                                 >
-                                    <ListItemIcon sx={{ color: active ? 'primary.main' : 'text.secondary', minWidth: 40 }}>
+                                    <ListItemIcon sx={{
+                                        color: active ? 'primary.main' : 'text.secondary',
+                                        minWidth: 40
+                                    }}>
                                         {item.icon}
                                     </ListItemIcon>
                                     <ListItemText

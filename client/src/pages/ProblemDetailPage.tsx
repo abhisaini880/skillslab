@@ -1,17 +1,66 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Box, Typography, Chip, Paper, Grid, Button, CircularProgress, Divider } from '@mui/material';
+import { 
+    Box, 
+    Typography, 
+    Chip, 
+    Paper, 
+    Grid, 
+    Button, 
+    CircularProgress, 
+    Divider,
+    MenuItem,
+    Select,
+    FormControl,
+    InputLabel,
+    SelectChangeEvent
+} from '@mui/material';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { useSelector } from 'react-redux';
 import { fetchProblemById } from '@/store/slices/problemsSlice';
 import { Editor } from '@monaco-editor/react';
-import { submitSolution } from '@/store/slices/submissionsSlice';
+import { createSubmission } from '@/store/slices/submissionsSlice'; // Fixed import
+
+// Define available programming languages
+interface ProgrammingLanguage {
+    id: string;
+    name: string;
+    monacoId: string;
+    defaultTemplate: string;
+}
+
+const languages: ProgrammingLanguage[] = [
+    { 
+        id: 'javascript', 
+        name: 'JavaScript', 
+        monacoId: 'javascript',
+        defaultTemplate: '// Write your JavaScript solution here\n\nfunction solution(input) {\n  // Your code here\n  return result;\n}\n'
+    },
+    { 
+        id: 'python', 
+        name: 'Python', 
+        monacoId: 'python',
+        defaultTemplate: '# Write your Python solution here\n\ndef solution(input):\n    # Your code here\n    return result\n'
+    },
+    { 
+        id: 'java', 
+        name: 'Java', 
+        monacoId: 'java',
+        defaultTemplate: '// Write your Java solution here\n\npublic class Solution {\n  public static void main(String[] args) {\n    // For testing\n  }\n\n  public static Object solution(Object input) {\n    // Your code here\n    return null;\n  }\n}\n'
+    },
+    { 
+        id: 'cpp', 
+        name: 'C++', 
+        monacoId: 'cpp',
+        defaultTemplate: '// Write your C++ solution here\n\n#include <iostream>\n#include <vector>\n#include <string>\n\nusing namespace std;\n\nclass Solution {\npublic:\n    // Your code here\n};\n\nint main() {\n    // For testing\n    return 0;\n}\n'
+    }
+];
 
 const ProblemDetailPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const dispatch = useAppDispatch();
-    const [code, setCode] = useState<string>('// Write your solution here\n\n');
-    const [language, setLanguage] = useState<string>('javascript');
+    const [code, setCode] = useState<string>(languages[0].defaultTemplate);
+    const [language, setLanguage] = useState<string>(languages[0].id);
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
     const { currentProblem, loading, error } = useSelector((state: any) => state.problems);
@@ -21,6 +70,17 @@ const ProblemDetailPage: React.FC = () => {
             dispatch(fetchProblemById(id));
         }
     }, [dispatch, id]);
+
+    const handleLanguageChange = (event: SelectChangeEvent) => {
+        const newLanguage = event.target.value;
+        setLanguage(newLanguage);
+        
+        // Set template for the new language
+        const selectedLang = languages.find(lang => lang.id === newLanguage);
+        if (selectedLang) {
+            setCode(selectedLang.defaultTemplate);
+        }
+    };
 
     const handleCodeChange = (value: string | undefined) => {
         if (value !== undefined) {
@@ -33,7 +93,7 @@ const ProblemDetailPage: React.FC = () => {
 
         setIsSubmitting(true);
         try {
-            await dispatch(submitSolution({
+            await dispatch(createSubmission({ // Updated to use createSubmission instead of submitSolution
                 problemId: id,
                 code,
                 language
@@ -66,6 +126,12 @@ const ProblemDetailPage: React.FC = () => {
             </Box>
         );
     }
+
+    // Get the Monaco language ID based on selected language
+    const getMonacoLanguage = () => {
+        const selectedLang = languages.find(lang => lang.id === language);
+        return selectedLang ? selectedLang.monacoId : 'javascript';
+    };
 
     return (
         <Box p={3}>
@@ -134,8 +200,24 @@ const ProblemDetailPage: React.FC = () => {
                     <Paper elevation={2} sx={{ p: 1, height: '100%', display: 'flex', flexDirection: 'column' }}>
                         <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <Typography variant="h6">Solution</Typography>
-                            <Box>
-                                {/* Language selector can be added here */}
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                {/* Language selector */}
+                                <FormControl sx={{ minWidth: 120, mr: 2 }} size="small">
+                                    <InputLabel id="language-select-label">Language</InputLabel>
+                                    <Select
+                                        labelId="language-select-label"
+                                        id="language-select"
+                                        value={language}
+                                        label="Language"
+                                        onChange={handleLanguageChange}
+                                    >
+                                        {languages.map((lang) => (
+                                            <MenuItem key={lang.id} value={lang.id}>
+                                                {lang.name}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
                                 <Button
                                     variant="contained"
                                     color="primary"
@@ -152,7 +234,7 @@ const ProblemDetailPage: React.FC = () => {
                             <Editor
                                 height="70vh"
                                 defaultLanguage="javascript"
-                                language={language}
+                                language={getMonacoLanguage()}
                                 value={code}
                                 onChange={handleCodeChange}
                                 theme="vs-dark"

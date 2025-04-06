@@ -40,7 +40,7 @@ class Problem(Base):
     problem_metadata = Column(JSON, nullable=True)
 
     # For company-specific challenges
-    company_id = Column(Integer, ForeignKey("company.id"), nullable=True)
+    # company_id = Column(Integer, ForeignKey("company.id"), nullable=True)
 
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())

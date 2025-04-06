@@ -15,6 +15,20 @@ export enum DifficultyLevel {
     HARD = 'HARD',
 }
 
+// Interface for the problems as received from the backend
+export interface BackendProblem {
+    id: string;
+    title: string;
+    description: string;
+    problem_type: string;  // Lowercase in backend
+    difficulty: string;    // Lowercase in backend
+    problem_metadata: any;
+    company_id: number | null;
+    created_at: string;
+    updated_at: string | null;
+}
+
+// Interface for problems used in the frontend
 export interface Problem {
     id: string;
     title: string;
@@ -55,6 +69,30 @@ const initialState: ProblemsState = {
     },
 };
 
+// Helper function to transform backend problem to frontend format
+const transformProblem = (backendProblem: any): Problem => {
+    // Map from backend (problem_type, lowercase) to frontend (type, uppercase) format
+    const problemType = backendProblem.problem_type?.toUpperCase() as ProblemType || ProblemType.DSA;
+    const difficulty = backendProblem.difficulty?.toUpperCase() as DifficultyLevel || DifficultyLevel.MEDIUM;
+    
+    // Extract tags from problem_metadata if available
+    const tags = backendProblem.problem_metadata?.tags || [];
+    
+    return {
+        id: backendProblem.id.toString(),
+        title: backendProblem.title || '',
+        description: backendProblem.description || '',
+        type: problemType,
+        difficulty: difficulty,
+        tags: tags,
+        isLive: true, // Default value or from metadata
+        createdAt: backendProblem.created_at || new Date().toISOString(),
+        updatedAt: backendProblem.updated_at || new Date().toISOString(),
+        companyId: backendProblem.company_id?.toString(),
+        sampleTestCases: backendProblem.problem_metadata?.sampleTestCases || '',
+    };
+};
+
 // Async thunks
 export const fetchProblems = createAsyncThunk(
     'problems/fetchProblems',
@@ -62,13 +100,16 @@ export const fetchProblems = createAsyncThunk(
         try {
             const { problems } = getState() as { problems: ProblemsState };
             const { type, difficulty, tag, search } = problems.filters;
-
             const filters: ProblemFilters = {};
             if (type) filters.type = type;
             if (difficulty) filters.difficulty = difficulty;
             if (search) filters.search = search;
-
-            return await problemService.getProblems(filters);
+            
+            // Get problems from API
+            const backendProblems = await problemService.getProblems(filters);
+            
+            // Transform backend problems to frontend format
+            return backendProblems.map(transformProblem);
         } catch (error: any) {
             return rejectWithValue(error.response?.data?.detail || 'Failed to fetch problems');
         }
@@ -79,7 +120,8 @@ export const fetchProblemById = createAsyncThunk(
     'problems/fetchProblemById',
     async (id: string, { rejectWithValue }) => {
         try {
-            return await problemService.getProblemById(id);
+            const backendProblem = await problemService.getProblemById(id);
+            return transformProblem(backendProblem);
         } catch (error: any) {
             return rejectWithValue(error.response?.data?.detail || 'Failed to fetch problem');
         }
@@ -126,7 +168,6 @@ const problemsSlice = createSlice({
                 state.isLoading = false;
                 state.error = action.payload as string;
             })
-
             // Fetch Problem by ID
             .addCase(fetchProblemById.pending, (state) => {
                 state.isLoading = true;

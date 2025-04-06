@@ -8,6 +8,7 @@ import RequireAuth from '@/components/auth/RequireAuth';
 import AdminDashboardPage from '@/pages/AdminDashboardPage';
 import AdminProblemListPage from '@/pages/AdminProblemListPage';
 import AdminProblemPage from '@/pages/AdminProblemPage';
+import ProblemDetailPage from '@/pages/ProblemDetailPage'; // Import the real component
 
 // Adding temporary placeholders for missing components
 import { Box, Typography } from '@mui/material';
@@ -21,13 +22,6 @@ const NotFoundPage = () => (
 const ProfilePage = () => (
     <Box sx={{ p: 4 }}>
         <Typography variant="h4">Profile Page</Typography>
-        <Typography>This page is under development</Typography>
-    </Box>
-);
-
-const ProblemDetailPage = () => (
-    <Box sx={{ p: 4 }}>
-        <Typography variant="h4">Problem Details</Typography>
         <Typography>This page is under development</Typography>
     </Box>
 );

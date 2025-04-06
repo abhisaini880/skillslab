@@ -79,7 +79,7 @@ def create_problem(
         problem_type=problem_in.problem_type,
         difficulty=problem_in.difficulty,
         problem_metadata=problem_in.problem_metadata,
-        company_id=problem_in.company_id,
+        # company_id=problem_in.company_id,
     )
     db.add(problem)
     db.commit()
