@@ -1,422 +1,654 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { RootState } from '@/store';
+import { useAppDispatch } from '@/hooks/useAppDispatch';
+import { fetchProblems } from '@/store/slices/problemsSlice';
 import {
-    Container,
-    Typography,
     Box,
+    Typography,
     Grid,
     Paper,
     Card,
     CardContent,
-    CardActions,
+    CardActionArea,
     Button,
+    Avatar,
+    Divider,
     List,
     ListItem,
-    ListItemText,
-    ListItemSecondaryAction,
     ListItemAvatar,
-    Avatar,
-    IconButton,
-    Divider,
+    ListItemText,
+    Stack,
+    Chip,
     alpha,
     useTheme,
-    Chip
+    IconButton,
+    Tooltip,
+    LinearProgress,
 } from '@mui/material';
-import { Link, useNavigate } from 'react-router-dom';
-import CodeRoundedIcon from '@mui/icons-material/CodeRounded';
-import PeopleAltRoundedIcon from '@mui/icons-material/PeopleAltRounded';
-import BusinessRoundedIcon from '@mui/icons-material/BusinessRounded';
-import InsightsRoundedIcon from '@mui/icons-material/InsightsRounded';
-import SendRoundedIcon from '@mui/icons-material/SendRounded';
-import AddRoundedIcon from '@mui/icons-material/AddRounded';
-import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
-import AssessmentRoundedIcon from '@mui/icons-material/AssessmentRounded';
-import DashboardRoundedIcon from '@mui/icons-material/DashboardRounded';
-import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import AddCircleIcon from '@mui/icons-material/AddCircle';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import EditIcon from '@mui/icons-material/Edit';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import TrendingDownIcon from '@mui/icons-material/TrendingDown';
+import CodeIcon from '@mui/icons-material/Code';
+import ArchitectureIcon from '@mui/icons-material/Architecture';
+import StorageIcon from '@mui/icons-material/Storage';
+import CloudIcon from '@mui/icons-material/Cloud';
+import DataObjectIcon from '@mui/icons-material/DataObject';
 
 const AdminDashboardPage = () => {
     const theme = useTheme();
     const navigate = useNavigate();
+    const dispatch = useAppDispatch();
+    const { user } = useSelector((state: RootState) => state.auth);
+    const { problems } = useSelector((state: RootState) => state.problems);
 
-    // Sample data for recent registrations
+    const [stats, setStats] = useState({
+        totalUsers: 254,
+        totalProblems: Array.isArray(problems) ? problems.length : 0,
+        totalSubmissions: 1320,
+        completionRate: 68.4,
+    });
+
+    // Mock data for dashboard
+    const recentProblems = Array.isArray(problems) 
+        ? problems.slice(0, 5) 
+        : [];
+
     const recentUsers = [
-        { id: 1, name: 'Sophia Lee', email: 'sophia@example.com', date: '2023-06-15' },
-        { id: 2, name: 'Michael Chen', email: 'michael@example.com', date: '2023-06-14' },
-        { id: 3, name: 'Emma Wilson', email: 'emma@example.com', date: '2023-06-13' },
-        { id: 4, name: 'James Rodriguez', email: 'james@example.com', date: '2023-06-12' },
+        { id: '1', username: 'sarah_dev', email: 'sarah@example.com', date: '2023-05-12' },
+        { id: '2', username: 'mike_coder', email: 'mike@example.com', date: '2023-05-11' },
+        { id: '3', username: 'alex_js', email: 'alex@example.com', date: '2023-05-10' },
     ];
 
-    // Sample data for recent submissions
-    const recentSubmissions = [
-        { id: 1, user: 'Alex Kim', problem: 'Two Sum', status: 'Accepted', date: '2023-06-15' },
-        { id: 2, user: 'Jessica Wang', problem: 'LRU Cache', status: 'Wrong Answer', date: '2023-06-15' },
-        { id: 3, user: 'Daniel Park', problem: 'Binary Tree Inorder Traversal', status: 'Accepted', date: '2023-06-14' },
-        { id: 4, user: 'Olivia Martinez', problem: 'Merge k Sorted Lists', status: 'Time Limit Exceeded', date: '2023-06-14' },
-    ];
+    useEffect(() => {
+        // Fetch problems if not already loaded
+        if (!Array.isArray(problems) || problems.length === 0) {
+            dispatch(fetchProblems());
+        }
 
-    // Stats data
-    const stats = [
-        { title: 'Total Problems', count: 125, icon: <CodeRoundedIcon fontSize="large" sx={{ color: theme.palette.primary.main }} /> },
-        { title: 'Total Users', count: 2450, icon: <PeopleAltRoundedIcon fontSize="large" sx={{ color: theme.palette.success.main }} /> },
-        { title: 'Total Submissions', count: 18765, icon: <SendRoundedIcon fontSize="large" sx={{ color: theme.palette.warning.main }} /> },
-        { title: 'Company Partners', count: 14, icon: <BusinessRoundedIcon fontSize="large" sx={{ color: theme.palette.info.main }} /> },
-    ];
+        // Update stats when problems change
+        if (Array.isArray(problems)) {
+            setStats(prev => ({
+                ...prev,
+                totalProblems: problems.length
+            }));
+        }
+    }, [dispatch, problems]);
 
-    // Admin modules
-    const adminModules = [
-        {
-            title: 'Problem Management',
-            description: 'Create, edit, and manage coding problems and challenges',
-            icon: <CodeRoundedIcon fontSize="large" />,
-            color: theme.palette.primary.main,
-            link: '/admin/problems'
-        },
-        {
-            title: 'User Management',
-            description: 'Manage user accounts, roles, and permissions',
-            icon: <PeopleAltRoundedIcon fontSize="large" />,
-            color: theme.palette.success.main,
-            link: '/admin/users'
-        },
-        {
-            title: 'Company Management',
-            description: 'Manage partner companies and their custom contests',
-            icon: <BusinessRoundedIcon fontSize="large" />,
-            color: theme.palette.info.main,
-            link: '/admin/companies'
-        },
-        {
-            title: 'Analytics',
-            description: 'View platform metrics, user statistics, and performance data',
-            icon: <InsightsRoundedIcon fontSize="large" />,
-            color: theme.palette.warning.main,
-            link: '/admin/analytics'
-        },
-        {
-            title: 'Settings',
-            description: 'Configure platform settings and preferences',
-            icon: <SettingsRoundedIcon fontSize="large" />,
-            color: theme.palette.error.main,
-            link: '/admin/settings'
-        },
-        {
-            title: 'Reports',
-            description: 'View and export platform usage reports',
-            icon: <AssessmentRoundedIcon fontSize="large" />,
-            color: theme.palette.secondary.main,
-            link: '/admin/reports'
-        },
-    ];
+    // Get problem type icon
+    const getProblemTypeIcon = (type: string) => {
+        switch (type) {
+            case 'DSA':
+                return <CodeIcon fontSize="small" />;
+            case 'LLD':
+                return <ArchitectureIcon fontSize="small" />;
+            case 'HLD':
+                return <DataObjectIcon fontSize="small" />;
+            case 'SQL':
+                return <StorageIcon fontSize="small" />;
+            case 'DEVOPS':
+                return <CloudIcon fontSize="small" />;
+            default:
+                return <CodeIcon fontSize="small" />;
+        }
+    };
 
-    // Handle card click
-    const handleModuleClick = (link: string) => {
-        navigate(link);
+    // Get difficulty color
+    const getDifficultyColor = (difficulty: string) => {
+        switch (difficulty) {
+            case 'EASY':
+                return theme.palette.success.main;
+            case 'MEDIUM':
+                return theme.palette.warning.main;
+            case 'HARD':
+                return theme.palette.error.main;
+            default:
+                return theme.palette.primary.main;
+        }
     };
 
     return (
-        <Container maxWidth="xl" sx={{ mt: 12, mb: 4 }}>
+        <Box sx={{ pb: 4 }}>
             <Box sx={{ mb: 4 }}>
-                <Typography
-                    variant="h3"
-                    sx={{
-                        fontWeight: 700,
-                        mb: 1,
-                        backgroundImage: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                        backgroundClip: 'text',
-                        color: 'transparent',
-                        display: 'inline-block'
-                    }}
-                >
-                    Admin Dashboard
-                </Typography>
-                <Typography variant="subtitle1" color="text.secondary">
-                    Manage and monitor all aspects of the SkillsLab platform
-                </Typography>
-            </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                    <Box>
+                        <Typography variant="h4" fontWeight={700} gutterBottom>
+                            Admin Dashboard
+                        </Typography>
+                        <Typography variant="body1" color="text.secondary">
+                            Manage and monitor all aspects of the SkillsLab platform
+                        </Typography>
+                    </Box>
+                    <Button
+                        variant="contained"
+                        startIcon={<AddCircleIcon />}
+                        onClick={() => navigate('/admin/problems/new')}
+                        sx={{
+                            borderRadius: 2,
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            px: 3,
+                            py: 1,
+                        }}
+                    >
+                        Add New Problem
+                    </Button>
+                </Box>
 
-            {/* Stats Cards */}
-            <Grid container spacing={3} sx={{ mb: 4 }}>
-                {stats.map((stat, index) => (
-                    <Grid item xs={12} sm={6} md={3} key={index}>
+                {/* Stats Overview */}
+                <Grid container spacing={3}>
+                    <Grid item xs={12} sm={6} lg={3}>
                         <Paper
-                            elevation={1}
+                            elevation={0}
                             sx={{
                                 p: 3,
+                                borderRadius: 3,
+                                bgcolor: alpha(theme.palette.primary.main, 0.05),
+                                border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
                                 height: '100%',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                borderRadius: theme.shape.borderRadius,
-                                background: alpha(theme.palette.background.paper, 0.6),
-                                backdropFilter: 'blur(10px)',
-                                transition: 'transform 0.3s ease',
-                                '&:hover': {
-                                    transform: 'translateY(-5px)',
-                                }
                             }}
                         >
-                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                                {stat.icon}
-                                <Typography variant="h6" sx={{ ml: 1, opacity: 0.7 }}>
-                                    {stat.title}
-                                </Typography>
-                            </Box>
-                            <Typography variant="h3" sx={{ fontWeight: 700 }}>
-                                {stat.count.toLocaleString()}
-                            </Typography>
-                        </Paper>
-                    </Grid>
-                ))}
-            </Grid>
-
-            {/* Admin Modules */}
-            <Typography variant="h5" fontWeight={600} sx={{ mb: 3 }}>
-                Administration
-            </Typography>
-            <Grid container spacing={3} sx={{ mb: 5 }}>
-                {adminModules.map((module, index) => (
-                    <Grid item xs={12} sm={6} md={4} key={index}>
-                        <Paper
-                            elevation={1}
-                            sx={{
-                                height: '100%',
-                                borderRadius: theme.shape.borderRadius,
-                                overflow: 'hidden',
-                                background: alpha(theme.palette.background.paper, 0.6),
-                                backdropFilter: 'blur(10px)',
-                                transition: 'transform 0.3s ease',
-                                '&:hover': {
-                                    transform: 'translateY(-5px)',
-                                    boxShadow: '0 10px 20px rgba(0,0,0,0.2)',
-                                },
-                                cursor: 'pointer',
-                                display: 'flex',
-                                flexDirection: 'column',
-                            }}
-                            onClick={() => handleModuleClick(module.link)}
-                        >
-                            <Box sx={{
-                                p: 3,
-                                display: 'flex',
-                                alignItems: 'center',
-                                borderBottom: '1px solid',
-                                borderColor: alpha(theme.palette.divider, 0.1),
-                            }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <Box>
+                                    <Typography color="text.secondary" variant="body2" fontSize="0.875rem">
+                                        Total Problems
+                                    </Typography>
+                                    <Typography variant="h4" fontWeight={700} sx={{ my: 1 }}>
+                                        {stats.totalProblems}
+                                    </Typography>
+                                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                        <TrendingUpIcon fontSize="small" sx={{ color: theme.palette.success.main, mr: 0.5 }} />
+                                        <Typography variant="body2" color="success.main" fontWeight={500}>
+                                            +5% this week
+                                        </Typography>
+                                    </Box>
+                                </Box>
                                 <Avatar
                                     sx={{
-                                        bgcolor: alpha(module.color, 0.1),
-                                        color: module.color,
+                                        backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                                        color: theme.palette.primary.main,
                                         width: 56,
-                                        height: 56
+                                        height: 56,
                                     }}
                                 >
-                                    {module.icon}
+                                    <AssignmentIcon />
                                 </Avatar>
-                                <Box sx={{ ml: 2 }}>
-                                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                                        {module.title}
-                                    </Typography>
-                                    <Typography variant="body2" color="text.secondary">
-                                        {module.description}
-                                    </Typography>
-                                </Box>
-                            </Box>
-                            <Box sx={{
-                                display: 'flex',
-                                justifyContent: 'flex-end',
-                                p: 1,
-                                mt: 'auto'
-                            }}>
-                                <Button
-                                    endIcon={<ArrowForwardRoundedIcon />}
-                                    sx={{ color: module.color }}
-                                >
-                                    Access
-                                </Button>
                             </Box>
                         </Paper>
                     </Grid>
-                ))}
-            </Grid>
 
-            {/* Recent Activity Section */}
-            <Grid container spacing={3}>
-                {/* Recent Users */}
-                <Grid item xs={12} md={6}>
-                    <Paper
-                        elevation={1}
-                        sx={{
-                            borderRadius: theme.shape.borderRadius,
-                            background: alpha(theme.palette.background.paper, 0.6),
-                            backdropFilter: 'blur(10px)',
-                            height: '100%',
-                        }}
-                    >
-                        <Box sx={{
-                            p: 3,
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            borderBottom: '1px solid',
-                            borderColor: alpha(theme.palette.divider, 0.1),
-                        }}>
-                            <Typography variant="h6" fontWeight={600}>
-                                Recent Registrations
-                            </Typography>
-                            <Button
-                                size="small"
-                                endIcon={<ArrowForwardRoundedIcon />}
-                                onClick={() => navigate('/admin/users')}
-                            >
-                                View All
-                            </Button>
-                        </Box>
-                        <List sx={{ pt: 0 }}>
-                            {recentUsers.map((user, index) => (
-                                <React.Fragment key={user.id}>
-                                    <ListItem sx={{ py: 2 }}>
-                                        <ListItemAvatar>
-                                            <Avatar sx={{ bgcolor: theme.palette.primary.main }}>
-                                                {user.name.charAt(0)}
-                                            </Avatar>
-                                        </ListItemAvatar>
-                                        <ListItemText
-                                            primary={user.name}
-                                            secondary={user.email}
-                                        />
-                                        <ListItemSecondaryAction>
-                                            <Typography variant="caption" color="text.secondary">
-                                                {new Date(user.date).toLocaleDateString()}
-                                            </Typography>
-                                        </ListItemSecondaryAction>
-                                    </ListItem>
-                                    {index < recentUsers.length - 1 && (
-                                        <Divider variant="inset" component="li" />
-                                    )}
-                                </React.Fragment>
-                            ))}
-                        </List>
-                    </Paper>
-                </Grid>
-
-                {/* Recent Submissions */}
-                <Grid item xs={12} md={6}>
-                    <Paper
-                        elevation={1}
-                        sx={{
-                            borderRadius: theme.shape.borderRadius,
-                            background: alpha(theme.palette.background.paper, 0.6),
-                            backdropFilter: 'blur(10px)',
-                            height: '100%',
-                        }}
-                    >
-                        <Box sx={{
-                            p: 3,
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            borderBottom: '1px solid',
-                            borderColor: alpha(theme.palette.divider, 0.1),
-                        }}>
-                            <Typography variant="h6" fontWeight={600}>
-                                Recent Submissions
-                            </Typography>
-                            <Button
-                                size="small"
-                                endIcon={<ArrowForwardRoundedIcon />}
-                                onClick={() => navigate('/admin/submissions')}
-                            >
-                                View All
-                            </Button>
-                        </Box>
-                        <List sx={{ pt: 0 }}>
-                            {recentSubmissions.map((submission, index) => (
-                                <React.Fragment key={submission.id}>
-                                    <ListItem sx={{ py: 2 }}>
-                                        <ListItemAvatar>
-                                            <Avatar sx={{
-                                                bgcolor: submission.status === 'Accepted'
-                                                    ? theme.palette.success.main
-                                                    : submission.status === 'Wrong Answer'
-                                                        ? theme.palette.error.main
-                                                        : theme.palette.warning.main
-                                            }}>
-                                                {submission.user.charAt(0)}
-                                            </Avatar>
-                                        </ListItemAvatar>
-                                        <ListItemText
-                                            primary={submission.problem}
-                                            secondary={`by ${submission.user}`}
-                                        />
-                                        <ListItemSecondaryAction>
-                                            <Chip
-                                                label={submission.status}
-                                                size="small"
-                                                sx={{
-                                                    bgcolor: submission.status === 'Accepted'
-                                                        ? alpha(theme.palette.success.main, 0.1)
-                                                        : submission.status === 'Wrong Answer'
-                                                            ? alpha(theme.palette.error.main, 0.1)
-                                                            : alpha(theme.palette.warning.main, 0.1),
-                                                    color: submission.status === 'Accepted'
-                                                        ? theme.palette.success.main
-                                                        : submission.status === 'Wrong Answer'
-                                                            ? theme.palette.error.main
-                                                            : theme.palette.warning.main,
-                                                    fontWeight: 600,
-                                                    mr: 2
-                                                }}
-                                            />
-                                            <Typography variant="caption" color="text.secondary">
-                                                {new Date(submission.date).toLocaleDateString()}
-                                            </Typography>
-                                        </ListItemSecondaryAction>
-                                    </ListItem>
-                                    {index < recentSubmissions.length - 1 && (
-                                        <Divider variant="inset" component="li" />
-                                    )}
-                                </React.Fragment>
-                            ))}
-                        </List>
-                    </Paper>
-                </Grid>
-            </Grid>
-
-            {/* Quick Actions */}
-            <Box sx={{ mt: 4 }}>
-                <Typography variant="h5" fontWeight={600} sx={{ mb: 2 }}>
-                    Quick Actions
-                </Typography>
-                <Grid container spacing={2}>
-                    <Grid item>
-                        <Button
-                            variant="contained"
-                            startIcon={<AddRoundedIcon />}
-                            onClick={() => navigate('/admin/problems/new')}
+                    <Grid item xs={12} sm={6} lg={3}>
+                        <Paper
+                            elevation={0}
                             sx={{
-                                backgroundImage: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
+                                p: 3,
+                                borderRadius: 3,
+                                bgcolor: alpha(theme.palette.info.main, 0.05),
+                                border: `1px solid ${alpha(theme.palette.info.main, 0.1)}`,
+                                height: '100%',
                             }}
                         >
-                            Add New Problem
-                        </Button>
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <Box>
+                                    <Typography color="text.secondary" variant="body2" fontSize="0.875rem">
+                                        Total Users
+                                    </Typography>
+                                    <Typography variant="h4" fontWeight={700} sx={{ my: 1 }}>
+                                        {stats.totalUsers}
+                                    </Typography>
+                                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                        <TrendingUpIcon fontSize="small" sx={{ color: theme.palette.success.main, mr: 0.5 }} />
+                                        <Typography variant="body2" color="success.main" fontWeight={500}>
+                                            +12% this month
+                                        </Typography>
+                                    </Box>
+                                </Box>
+                                <Avatar
+                                    sx={{
+                                        backgroundColor: alpha(theme.palette.info.main, 0.1),
+                                        color: theme.palette.info.main,
+                                        width: 56,
+                                        height: 56,
+                                    }}
+                                >
+                                    <PeopleAltIcon />
+                                </Avatar>
+                            </Box>
+                        </Paper>
                     </Grid>
-                    <Grid item>
-                        <Button
-                            variant="outlined"
-                            onClick={() => navigate('/admin/users')}
+
+                    <Grid item xs={12} sm={6} lg={3}>
+                        <Paper
+                            elevation={0}
+                            sx={{
+                                p: 3,
+                                borderRadius: 3,
+                                bgcolor: alpha(theme.palette.success.main, 0.05),
+                                border: `1px solid ${alpha(theme.palette.success.main, 0.1)}`,
+                                height: '100%',
+                            }}
                         >
-                            Manage Users
-                        </Button>
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <Box>
+                                    <Typography color="text.secondary" variant="body2" fontSize="0.875rem">
+                                        Total Submissions
+                                    </Typography>
+                                    <Typography variant="h4" fontWeight={700} sx={{ my: 1 }}>
+                                        {stats.totalSubmissions}
+                                    </Typography>
+                                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                        <TrendingDownIcon fontSize="small" sx={{ color: theme.palette.error.main, mr: 0.5 }} />
+                                        <Typography variant="body2" color="error.main" fontWeight={500}>
+                                            -2% this week
+                                        </Typography>
+                                    </Box>
+                                </Box>
+                                <Avatar
+                                    sx={{
+                                        backgroundColor: alpha(theme.palette.success.main, 0.1),
+                                        color: theme.palette.success.main,
+                                        width: 56,
+                                        height: 56,
+                                    }}
+                                >
+                                    <CheckCircleIcon />
+                                </Avatar>
+                            </Box>
+                        </Paper>
                     </Grid>
-                    <Grid item>
-                        <Button
-                            variant="outlined"
-                            onClick={() => navigate('/admin/settings')}
+
+                    <Grid item xs={12} sm={6} lg={3}>
+                        <Paper
+                            elevation={0}
+                            sx={{
+                                p: 3,
+                                borderRadius: 3,
+                                bgcolor: alpha(theme.palette.warning.main, 0.05),
+                                border: `1px solid ${alpha(theme.palette.warning.main, 0.1)}`,
+                                height: '100%',
+                            }}
                         >
-                            System Settings
-                        </Button>
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                                <Box>
+                                    <Typography color="text.secondary" variant="body2" fontSize="0.875rem">
+                                        Completion Rate
+                                    </Typography>
+                                    <Typography variant="h4" fontWeight={700} sx={{ my: 1 }}>
+                                        {stats.completionRate}%
+                                    </Typography>
+                                </Box>
+                                <Avatar
+                                    sx={{
+                                        backgroundColor: alpha(theme.palette.warning.main, 0.1),
+                                        color: theme.palette.warning.main,
+                                        width: 56,
+                                        height: 56,
+                                    }}
+                                >
+                                    <DashboardIcon />
+                                </Avatar>
+                            </Box>
+                            <LinearProgress 
+                                variant="determinate" 
+                                value={stats.completionRate} 
+                                sx={{ 
+                                    height: 8, 
+                                    borderRadius: 4,
+                                    bgcolor: alpha(theme.palette.warning.main, 0.1),
+                                    '& .MuiLinearProgress-bar': {
+                                        bgcolor: theme.palette.warning.main,
+                                    }
+                                }} 
+                            />
+                        </Paper>
                     </Grid>
                 </Grid>
             </Box>
-        </Container>
+
+            <Grid container spacing={3}>
+                {/* Recent Problems */}
+                <Grid item xs={12} lg={6}>
+                    <Paper 
+                        elevation={0} 
+                        sx={{
+                            p: 3, 
+                            borderRadius: 3,
+                            height: '100%',
+                            border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
+                        }}
+                    >
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                            <Typography variant="h6" fontWeight={600}>
+                                Recent Problems
+                            </Typography>
+                            <Button
+                                component={RouterLink}
+                                to="/admin/problems"
+                                endIcon={<ArrowForwardIcon />}
+                                size="small"
+                                sx={{ textTransform: 'none' }}
+                            >
+                                View All
+                            </Button>
+                        </Box>
+
+                        <List sx={{ p: 0 }}>
+                            {recentProblems.length > 0 ? (
+                                recentProblems.map((problem, index) => (
+                                    <Box key={problem.id}>
+                                        <ListItem
+                                            sx={{
+                                                px: 2,
+                                                py: 1.5,
+                                                borderRadius: 2,
+                                                '&:hover': {
+                                                    bgcolor: alpha(theme.palette.primary.main, 0.04),
+                                                },
+                                            }}
+                                            secondaryAction={
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                    <Tooltip title="View">
+                                                        <IconButton
+                                                            size="small"
+                                                            onClick={() => navigate(`/problems/${problem.id}`)}
+                                                            sx={{
+                                                                bgcolor: alpha(theme.palette.info.main, 0.1),
+                                                                color: theme.palette.info.main,
+                                                                '&:hover': {
+                                                                    bgcolor: alpha(theme.palette.info.main, 0.2),
+                                                                }
+                                                            }}
+                                                        >
+                                                            <VisibilityIcon fontSize="small" />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                    <Tooltip title="Edit">
+                                                        <IconButton
+                                                            size="small"
+                                                            onClick={() => navigate(`/admin/problems/edit/${problem.id}`)}
+                                                            sx={{
+                                                                bgcolor: alpha(theme.palette.primary.main, 0.1),
+                                                                color: theme.palette.primary.main,
+                                                                '&:hover': {
+                                                                    bgcolor: alpha(theme.palette.primary.main, 0.2),
+                                                                }
+                                                            }}
+                                                        >
+                                                            <EditIcon fontSize="small" />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                </Box>
+                                            }
+                                        >
+                                            <ListItemAvatar>
+                                                <Avatar
+                                                    sx={{
+                                                        bgcolor: alpha(theme.palette.primary.main, 0.1),
+                                                        color: theme.palette.primary.main,
+                                                    }}
+                                                >
+                                                    {getProblemTypeIcon(problem.type)}
+                                                </Avatar>
+                                            </ListItemAvatar>
+                                            <ListItemText
+                                                primary={
+                                                    <Typography variant="body1" fontWeight={500}>
+                                                        {problem.title}
+                                                    </Typography>
+                                                }
+                                                secondary={
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
+                                                        <Chip
+                                                            label={problem.type}
+                                                            size="small"
+                                                            sx={{ 
+                                                                mr: 1, 
+                                                                fontSize: '0.7rem',
+                                                                height: 20,
+                                                                fontWeight: 500
+                                                            }}
+                                                        />
+                                                        <Chip
+                                                            label={problem.difficulty}
+                                                            size="small"
+                                                            sx={{
+                                                                fontSize: '0.7rem',
+                                                                height: 20,
+                                                                bgcolor: alpha(getDifficultyColor(problem.difficulty), 0.1),
+                                                                color: getDifficultyColor(problem.difficulty),
+                                                                fontWeight: 500,
+                                                                border: `1px solid ${alpha(getDifficultyColor(problem.difficulty), 0.3)}`
+                                                            }}
+                                                        />
+                                                    </Box>
+                                                }
+                                            />
+                                        </ListItem>
+                                        {index < recentProblems.length - 1 && (
+                                            <Divider component="li" sx={{ my: 1, opacity: 0.6 }} />
+                                        )}
+                                    </Box>
+                                ))
+                            ) : (
+                                <Box sx={{ py: 4, textAlign: 'center' }}>
+                                    <Typography color="text.secondary">
+                                        No problems available yet
+                                    </Typography>
+                                    <Button
+                                        variant="outlined"
+                                        sx={{ mt: 2, borderRadius: 2, textTransform: 'none' }}
+                                        startIcon={<AddCircleIcon />}
+                                        onClick={() => navigate('/admin/problems/new')}
+                                    >
+                                        Add First Problem
+                                    </Button>
+                                </Box>
+                            )}
+                        </List>
+                    </Paper>
+                </Grid>
+
+                {/* Recent Users */}
+                <Grid item xs={12} lg={6}>
+                    <Paper 
+                        elevation={0} 
+                        sx={{
+                            p: 3, 
+                            borderRadius: 3,
+                            height: '100%',
+                            border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
+                        }}
+                    >
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                            <Typography variant="h6" fontWeight={600}>
+                                Recent Users
+                            </Typography>
+                            <Button
+                                endIcon={<ArrowForwardIcon />}
+                                size="small"
+                                sx={{ textTransform: 'none' }}
+                            >
+                                View All
+                            </Button>
+                        </Box>
+
+                        <List sx={{ p: 0 }}>
+                            {recentUsers.map((user, index) => (
+                                <Box key={user.id}>
+                                    <ListItem
+                                        sx={{
+                                            px: 2,
+                                            py: 1.5,
+                                            borderRadius: 2,
+                                            '&:hover': {
+                                                bgcolor: alpha(theme.palette.primary.main, 0.04),
+                                            },
+                                        }}
+                                        secondaryAction={
+                                            <Typography variant="caption" color="text.secondary">
+                                                Joined {user.date}
+                                            </Typography>
+                                        }
+                                    >
+                                        <ListItemAvatar>
+                                            <Avatar sx={{ bgcolor: theme.palette.primary.main }}>
+                                                {user.username.charAt(0).toUpperCase()}
+                                            </Avatar>
+                                        </ListItemAvatar>
+                                        <ListItemText
+                                            primary={
+                                                <Typography variant="body1" fontWeight={500}>
+                                                    {user.username}
+                                                </Typography>
+                                            }
+                                            secondary={user.email}
+                                        />
+                                    </ListItem>
+                                    {index < recentUsers.length - 1 && (
+                                        <Divider component="li" sx={{ my: 1, opacity: 0.6 }} />
+                                    )}
+                                </Box>
+                            ))}
+                        </List>
+                    </Paper>
+                </Grid>
+
+                {/* Quick Action Cards */}
+                <Grid item xs={12}>
+                    <Box sx={{ mt: 2 }}>
+                        <Typography variant="h6" fontWeight={600} sx={{ mb: 2 }}>
+                            Quick Actions
+                        </Typography>
+                        <Grid container spacing={3}>
+                            <Grid item xs={12} sm={6} md={3}>
+                                <Card 
+                                    sx={{ 
+                                        borderRadius: 3,
+                                        border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
+                                    }}
+                                >
+                                    <CardActionArea
+                                        onClick={() => navigate('/admin/problems/new')}
+                                        sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
+                                    >
+                                        <Avatar
+                                            sx={{
+                                                mb: 2,
+                                                bgcolor: alpha(theme.palette.primary.main, 0.1),
+                                                color: theme.palette.primary.main,
+                                            }}
+                                        >
+                                            <AddCircleIcon />
+                                        </Avatar>
+                                        <Typography variant="h6" fontWeight={600} gutterBottom>
+                                            Add Problem
+                                        </Typography>
+                                        <Typography variant="body2" color="text.secondary">
+                                            Create a new problem for users to solve
+                                        </Typography>
+                                    </CardActionArea>
+                                </Card>
+                            </Grid>
+                            <Grid item xs={12} sm={6} md={3}>
+                                <Card 
+                                    sx={{ 
+                                        borderRadius: 3,
+                                        border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
+                                    }}
+                                >
+                                    <CardActionArea
+                                        onClick={() => navigate('/admin/problems')}
+                                        sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
+                                    >
+                                        <Avatar
+                                            sx={{
+                                                mb: 2,
+                                                bgcolor: alpha(theme.palette.info.main, 0.1),
+                                                color: theme.palette.info.main,
+                                            }}
+                                        >
+                                            <AssignmentIcon />
+                                        </Avatar>
+                                        <Typography variant="h6" fontWeight={600} gutterBottom>
+                                            Manage Problems
+                                        </Typography>
+                                        <Typography variant="body2" color="text.secondary">
+                                            Edit, delete or review existing problems
+                                        </Typography>
+                                    </CardActionArea>
+                                </Card>
+                            </Grid>
+                            <Grid item xs={12} sm={6} md={3}>
+                                <Card 
+                                    sx={{ 
+                                        borderRadius: 3,
+                                        border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
+                                    }}
+                                >
+                                    <CardActionArea
+                                        sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
+                                    >
+                                        <Avatar
+                                            sx={{
+                                                mb: 2,
+                                                bgcolor: alpha(theme.palette.success.main, 0.1),
+                                                color: theme.palette.success.main,
+                                            }}
+                                        >
+                                            <PeopleAltIcon />
+                                        </Avatar>
+                                        <Typography variant="h6" fontWeight={600} gutterBottom>
+                                            User Management
+                                        </Typography>
+                                        <Typography variant="body2" color="text.secondary">
+                                            Manage users, roles, and permissions
+                                        </Typography>
+                                    </CardActionArea>
+                                </Card>
+                            </Grid>
+                            <Grid item xs={12} sm={6} md={3}>
+                                <Card 
+                                    sx={{ 
+                                        borderRadius: 3,
+                                        border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
+                                    }}
+                                >
+                                    <CardActionArea
+                                        sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
+                                    >
+                                        <Avatar
+                                            sx={{
+                                                mb: 2,
+                                                bgcolor: alpha(theme.palette.warning.main, 0.1),
+                                                color: theme.palette.warning.main,
+                                            }}
+                                        >
+                                            <DashboardIcon />
+                                        </Avatar>
+                                        <Typography variant="h6" fontWeight={600} gutterBottom>
+                                            Analytics
+                                        </Typography>
+                                        <Typography variant="body2" color="text.secondary">
+                                            View detailed platform usage statistics
+                                        </Typography>
+                                    </CardActionArea>
+                                </Card>
+                            </Grid>
+                        </Grid>
+                    </Box>
+                </Grid>
+            </Grid>
+        </Box>
     );
 };
 

@@ -10,7 +10,7 @@ interface AuthState {
 }
 
 const initialState: AuthState = {
-    user: null,
+    user: JSON.parse(localStorage.getItem('user') || 'null'),
     token: localStorage.getItem('token'),
     isAuthenticated: !!localStorage.getItem('token'),
     isLoading: false,
@@ -20,10 +20,17 @@ const initialState: AuthState = {
 // Async thunks
 export const login = createAsyncThunk(
     'auth/login',
-    async (credentials: LoginCredentials, { rejectWithValue }) => {
+    async (credentials: LoginCredentials, { dispatch, rejectWithValue }) => {
         try {
             const response = await authService.login(credentials);
             localStorage.setItem('token', response.access_token);
+
+            // After successful login, fetch the user data
+            const userAction = await dispatch(getCurrentUser());
+            if (getCurrentUser.fulfilled.match(userAction)) {
+                return response;
+            }
+
             return response;
         } catch (error: any) {
             return rejectWithValue(error.response?.data?.detail || 'Login failed');
@@ -51,7 +58,10 @@ export const getCurrentUser = createAsyncThunk(
             if (!token) {
                 return rejectWithValue('No token found');
             }
-            return await authService.getCurrentUser();
+            const userData = await authService.getCurrentUser();
+            // Store user data in localStorage
+            localStorage.setItem('user', JSON.stringify(userData));
+            return userData;
         } catch (error: any) {
             return rejectWithValue(error.response?.data?.detail || 'Failed to get user info');
         }
@@ -64,6 +74,7 @@ const authSlice = createSlice({
     reducers: {
         logout: (state) => {
             localStorage.removeItem('token');
+            localStorage.removeItem('user');
             state.user = null;
             state.token = null;
             state.isAuthenticated = false;
@@ -119,6 +130,7 @@ const authSlice = createSlice({
                 state.isAuthenticated = false;
                 state.token = null;
                 localStorage.removeItem('token');
+                localStorage.removeItem('user');
             });
     },
 });

@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
